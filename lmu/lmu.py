@@ -280,8 +280,8 @@ class LMUCellODE(Layer):
 
         # if the realizer is CCF then we get the following two constraints
         # that could be useful for efficiency
-        #assert np.allclose(self._ss.B[1:], 0)  # CCF
-        #assert np.allclose(self._ss.B[0], self.order**2)
+        # assert np.allclose(self._ss.B[1:], 0)  # CCF
+        # assert np.allclose(self._ss.B[0], self.order**2)
 
         if not (self.trainable_dt or self.trainable_A or self.trainable_B):
             # This is a hack to speed up parts of the computational graph
@@ -462,8 +462,8 @@ class LMUCellGating(Layer):
 
         # if the realizer is CCF then we get the following two constraints
         # that could be useful for efficiency
-        #assert np.allclose(self._ss.B[1:], 0)  # CCF
-        #assert np.allclose(self._ss.B[0], self.order**2)
+        # assert np.allclose(self._ss.B[1:], 0)  # CCF
+        # assert np.allclose(self._ss.B[0], self.order**2)
 
         self.state_size = (self.units, self.order)
         self.output_size = self.units
@@ -508,27 +508,24 @@ class LMUCellGating(Layer):
             shape=(self.order, self.units),
             initializer=self.memory_kernel_initializer,
             trainable=self.trainable_memory_kernel)
-        
+
         self.forget_input_kernel = self.add_weight(
             name='forget_input_kernel',
             shape=(input_dim, self.order),
             initializer=self.forget_input_kernel_initializer,
-            trainable=self.trainable_forget_input_kernel
-        )
-        
+            trainable=self.trainable_forget_input_kernel)
+
         self.forget_hidden_kernel = self.add_weight(
             name='forget_hidden_kernel',
             shape=(self.units, self.order),
             initializer=self.forget_input_kernel_initializer,
-            trainable=self.trainable_forget_input_kernel
-        )
-        
+            trainable=self.trainable_forget_input_kernel)
+
         self.forget_bias = self.add_weight(
             name='forget_bias',
             shape=(1, self.order),
             initializer=self.forget_bias_initializer,
-            trainable=self.trainable_forget_bias
-        )
+            trainable=self.trainable_forget_bias)
 
         self.AT = self.add_weight(
             name='AT',
@@ -551,10 +548,10 @@ class LMUCellGating(Layer):
                 (K.dot(inputs, self.input_encoders) +
                  K.dot(h, self.hidden_encoders) +
                  K.dot(m, self.memory_encoders)))
-        
+
         f = self.gate_activation(
-            K.dot(inputs, self.forget_input_kernel) + 
-            K.dot(h, self.forget_hidden_kernel) + 
+            K.dot(inputs, self.forget_input_kernel) +
+            K.dot(h, self.forget_hidden_kernel) +
             self.forget_bias)
 
         m = m + K.dot(m, self.AT) + f * K.dot(u, self.BT)
@@ -565,4 +562,3 @@ class LMUCellGating(Layer):
              K.dot(m, self.memory_kernel))
 
         return h, [h, m]
-
