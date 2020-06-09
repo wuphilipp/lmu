@@ -31,7 +31,7 @@ version = runpy.run_path(os.path.join(root, "lmu", "version.py"))["version"]
 
 install_req = [
     "keras>=2.2.4",
-    "tensorflow>=1.12.0",
+    "tensorflow>=2.0.0",
     "torch>=1.1.0",
     "scikit-learn>=0.20.1",
     "matplotlib>=3.0.2",
@@ -70,7 +70,7 @@ setup(
     },
     python_requires=">=3.5",
     classifiers=[
-        "Development Status :: 5 - Alpha",
+        "Development Status :: 3 - Alpha",
         "Framework :: Nengo",
         "Intended Audience :: Science/Research",
         "License :: Free for non-commercial use",
