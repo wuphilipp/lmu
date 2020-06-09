@@ -22,6 +22,8 @@ Release history
 0.1.0 (June 3, 2020)
 ====================
 
-Initial release of LMU 0.1.0 (Alpha)!
-Supports Python 3.5+.
+Initial release of LMU 0.1.0 (alpha)! Supports Python 3.5+.
+
+The API is conisdered unstable; parts are likely to change in the future.
+
 Thanks to all of the contributors for making this possible!
