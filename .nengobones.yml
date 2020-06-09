@@ -1,9 +1,9 @@
 project_name: LMU
 pkg_name: lmu
 repo_name: lmu
-description: Legrenge memory units
+description: Legrenge Memory Units
 
-copyright_start: 2020
+copyright_start: 2019
 
 license_rst: {}
 
