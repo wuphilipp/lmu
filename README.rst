@@ -45,7 +45,7 @@ To reproduce all experiments / training / figures:
 And then run the notebook:
 
 
-* ``experiments/psMNIST-standard.ipynb``
+* ``docs/basic/psMNIST.ipynb``
 
 Nengo Examples
 --------------
