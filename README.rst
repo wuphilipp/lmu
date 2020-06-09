@@ -26,35 +26,26 @@ This repository includes a pre-trained Keras/TensorFlow model, located at ``mode
 
 ----
 
-We recommend Python 3.6+ and a computer with:
+We recommend Python 3.5+ and a computer with:
 
 
 * At least 32GB of RAM
 * A powerful GPU
-* GPU install of ``tensorflow>=1.12.0``
+* GPU install of ``tensorflow>=2.0.0``
 
 To reproduce all experiments / training / figures:
 
 .. code-block::
 
-   git clone --recurse-submodules https://github.com/abr/neurips2019 lmu
+   git clone https://github.com/abr/lmu.git
    cd lmu
    pip install -e .
-   python figures/legendre-basis.py
-   python figures/poisson-performance.py
    jupyter notebook
 
-And then run the notebooks:
+And then run the notebook:
 
 
-* ``experiments/capacity.ipynb``
 * ``experiments/psMNIST-standard.ipynb``
-* ``experiments/psMNIST-phased-lstm.ipynb``
-* ``experiments/mackey-glass.ipynb``
-
-Models will be saved to the ``models`` directory and figures to the ``figures`` directory.
-
-A neuromorphic example deployed on Loihi is located at ``neuromorphic/loihi_lmu.py``. This requires running ``pip install -r neuromorphic/requirements.txt``. If a Loihi board is connected to your computer then it should be automatically detected and used. Otherwise, a detailed hardware emulator is run in software. 
 
 Nengo Examples
 --------------

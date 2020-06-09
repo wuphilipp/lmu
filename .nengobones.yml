@@ -41,7 +41,7 @@ setup_py:
     - "Topic :: Scientific/Engineering :: Artificial Intelligence"
 
 travis_yml:
-  python: 3.6
+  python: 3.5
   global_vars:
     NUMPY: numpy
   jobs:
