@@ -10,15 +10,17 @@ from keras.layers import Layer
 
 
 class Legendre(Initializer):
-
     def __call__(self, shape, dtype=None):
         from scipy.special import legendre
+
         if len(shape) != 2:
-            raise ValueError("Legendre initializer assumes shape is 2D; "
-                             "but shape=%s" % (shape,))
+            raise ValueError(
+                "Legendre initializer assumes shape is 2D; " "but shape=%s" % (shape,)
+            )
         # TODO: geometric spacing might be useful too!
-        return np.asarray([legendre(i)(np.linspace(-1, 1, shape[1]))
-                           for i in range(shape[0])])
+        return np.asarray(
+            [legendre(i)(np.linspace(-1, 1, shape[1])) for i in range(shape[0])]
+        )
 
 
 class LMUCell(Layer):
@@ -49,29 +51,31 @@ class LMUCell(Layer):
     Filing date: 2016-08-22.
     """
 
-    def __init__(self,
-                 units,
-                 order,
-                 theta,  # relative to dt=1
-                 method='zoh',
-                 realizer=Identity(),    # TODO: Deprecate?
-                 factory=LegendreDelay,  # TODO: Deprecate?
-                 trainable_input_encoders=True,
-                 trainable_hidden_encoders=True,
-                 trainable_memory_encoders=True,
-                 trainable_input_kernel=True,
-                 trainable_hidden_kernel=True,
-                 trainable_memory_kernel=True,
-                 trainable_A=False,
-                 trainable_B=False,
-                 input_encoders_initializer='lecun_uniform',
-                 hidden_encoders_initializer='lecun_uniform',
-                 memory_encoders_initializer=Constant(0),  # 'lecun_uniform',
-                 input_kernel_initializer='glorot_normal',
-                 hidden_kernel_initializer='glorot_normal',
-                 memory_kernel_initializer='glorot_normal',
-                 hidden_activation='tanh',
-                 **kwargs):
+    def __init__(
+        self,
+        units,
+        order,
+        theta,  # relative to dt=1
+        method="zoh",
+        realizer=Identity(),  # TODO: Deprecate?
+        factory=LegendreDelay,  # TODO: Deprecate?
+        trainable_input_encoders=True,
+        trainable_hidden_encoders=True,
+        trainable_memory_encoders=True,
+        trainable_input_kernel=True,
+        trainable_hidden_kernel=True,
+        trainable_memory_kernel=True,
+        trainable_A=False,
+        trainable_B=False,
+        input_encoders_initializer="lecun_uniform",
+        hidden_encoders_initializer="lecun_uniform",
+        memory_encoders_initializer=Constant(0),  # 'lecun_uniform',
+        input_kernel_initializer="glorot_normal",
+        hidden_kernel_initializer="glorot_normal",
+        memory_kernel_initializer="glorot_normal",
+        hidden_activation="tanh",
+        **kwargs
+    ):
         super().__init__(**kwargs)
 
         self.units = units
@@ -89,25 +93,19 @@ class LMUCell(Layer):
         self.trainable_A = trainable_A
         self.trainable_B = trainable_B
 
-        self.input_encoders_initializer = initializers.get(
-            input_encoders_initializer)
-        self.hidden_encoders_initializer = initializers.get(
-            hidden_encoders_initializer)
-        self.memory_encoders_initializer = initializers.get(
-            memory_encoders_initializer)
-        self.input_kernel_initializer = initializers.get(
-            input_kernel_initializer)
-        self.hidden_kernel_initializer = initializers.get(
-            hidden_kernel_initializer)
-        self.memory_kernel_initializer = initializers.get(
-            memory_kernel_initializer)
+        self.input_encoders_initializer = initializers.get(input_encoders_initializer)
+        self.hidden_encoders_initializer = initializers.get(hidden_encoders_initializer)
+        self.memory_encoders_initializer = initializers.get(memory_encoders_initializer)
+        self.input_kernel_initializer = initializers.get(input_kernel_initializer)
+        self.hidden_kernel_initializer = initializers.get(hidden_kernel_initializer)
+        self.memory_kernel_initializer = initializers.get(memory_kernel_initializer)
 
         self.hidden_activation = activations.get(hidden_activation)
 
-        self._realizer_result = realizer(
-            factory(theta=theta, order=self.order))
+        self._realizer_result = realizer(factory(theta=theta, order=self.order))
         self._ss = cont2discrete(
-            self._realizer_result.realization, dt=1., method=method)
+            self._realizer_result.realization, dt=1.0, method=method
+        )
         self._A = self._ss.A - np.eye(order)  # puts into form: x += Ax
         self._B = self._ss.B
         self._C = self._ss.C
@@ -138,68 +136,79 @@ class LMUCell(Layer):
         # TODO: add regularizers
 
         self.input_encoders = self.add_weight(
-            name='input_encoders',
+            name="input_encoders",
             shape=(input_dim, 1),
             initializer=self.input_encoders_initializer,
-            trainable=self.trainable_input_encoders)
+            trainable=self.trainable_input_encoders,
+        )
 
         self.hidden_encoders = self.add_weight(
-            name='hidden_encoders',
+            name="hidden_encoders",
             shape=(self.units, 1),
             initializer=self.hidden_encoders_initializer,
-            trainable=self.trainable_hidden_encoders)
+            trainable=self.trainable_hidden_encoders,
+        )
 
         self.memory_encoders = self.add_weight(
-            name='memory_encoders',
+            name="memory_encoders",
             shape=(self.order, 1),
             initializer=self.memory_encoders_initializer,
-            trainable=self.trainable_memory_encoders)
+            trainable=self.trainable_memory_encoders,
+        )
 
         self.input_kernel = self.add_weight(
-            name='input_kernel',
+            name="input_kernel",
             shape=(input_dim, self.units),
             initializer=self.input_kernel_initializer,
-            trainable=self.trainable_input_kernel)
+            trainable=self.trainable_input_kernel,
+        )
 
         self.hidden_kernel = self.add_weight(
-            name='hidden_kernel',
+            name="hidden_kernel",
             shape=(self.units, self.units),
             initializer=self.hidden_kernel_initializer,
-            trainable=self.trainable_hidden_kernel)
+            trainable=self.trainable_hidden_kernel,
+        )
 
         self.memory_kernel = self.add_weight(
-            name='memory_kernel',
+            name="memory_kernel",
             shape=(self.order, self.units),
             initializer=self.memory_kernel_initializer,
-            trainable=self.trainable_memory_kernel)
+            trainable=self.trainable_memory_kernel,
+        )
 
         self.AT = self.add_weight(
-            name='AT',
+            name="AT",
             shape=(self.order, self.order),
             initializer=Constant(self._A.T),  # note: transposed
-            trainable=self.trainable_A)
+            trainable=self.trainable_A,
+        )
 
         self.BT = self.add_weight(
-            name='BT',
+            name="BT",
             shape=(1, self.order),  # system is SISO
             initializer=Constant(self._B.T),  # note: transposed
-            trainable=self.trainable_B)
+            trainable=self.trainable_B,
+        )
 
         self.built = True
 
     def call(self, inputs, states):
         h, m = states
 
-        u = (K.dot(inputs, self.input_encoders) +
-             K.dot(h, self.hidden_encoders) +
-             K.dot(m, self.memory_encoders))
+        u = (
+            K.dot(inputs, self.input_encoders)
+            + K.dot(h, self.hidden_encoders)
+            + K.dot(m, self.memory_encoders)
+        )
 
         m = m + K.dot(m, self.AT) + K.dot(u, self.BT)
 
         h = self.hidden_activation(
-             K.dot(inputs, self.input_kernel) +
-             K.dot(h, self.hidden_kernel) +
-             K.dot(m, self.memory_kernel))
+            K.dot(inputs, self.input_kernel)
+            + K.dot(h, self.hidden_kernel)
+            + K.dot(m, self.memory_kernel)
+        )
 
         return h, [h, m]
 
@@ -218,24 +227,26 @@ class InputScaled(Initializer):
 class LMUCellODE(Layer):
     """Variant of LMUCell that supports backprop through the ODE solver."""
 
-    def __init__(self,
-                 units,
-                 order,
-                 theta=100,  # relative to dt=1
-                 method='euler',
-                 return_states=False,
-                 realizer=Identity(),
-                 factory=LegendreDelay,
-                 trainable_encoders=True,
-                 trainable_decoders=True,
-                 trainable_dt=False,
-                 trainable_A=False,
-                 trainable_B=False,
-                 encoder_initializer=InputScaled(1.),  # TODO
-                 decoder_initializer=None,             # TODO
-                 hidden_activation='linear',           # TODO
-                 output_activation='tanh',             # TODO
-                 **kwargs):
+    def __init__(
+        self,
+        units,
+        order,
+        theta=100,  # relative to dt=1
+        method="euler",
+        return_states=False,
+        realizer=Identity(),
+        factory=LegendreDelay,
+        trainable_encoders=True,
+        trainable_decoders=True,
+        trainable_dt=False,
+        trainable_A=False,
+        trainable_B=False,
+        encoder_initializer=InputScaled(1.0),  # TODO
+        decoder_initializer=None,  # TODO
+        hidden_activation="linear",  # TODO
+        output_activation="tanh",  # TODO
+        **kwargs
+    ):
         super().__init__(**kwargs)
 
         self.units = units
@@ -251,8 +262,7 @@ class LMUCellODE(Layer):
         self.trainable_A = trainable_A
         self.trainable_B = trainable_B
 
-        self._realizer_result = realizer(
-            factory(theta=theta, order=self.order))
+        self._realizer_result = realizer(factory(theta=theta, order=self.order))
         self._ss = self._realizer_result.realization
         self._A = self._ss.A
         self._B = self._ss.B
@@ -260,7 +270,7 @@ class LMUCellODE(Layer):
         assert np.allclose(self._ss.D, 0)  # proper LTI
 
         self.encoder_initializer = initializers.get(encoder_initializer)
-        self.dt_initializer = initializers.get(Constant(1.))
+        self.dt_initializer = initializers.get(Constant(1.0))
 
         if decoder_initializer is None:
             assert self._C.shape == (1, self.order)
@@ -268,7 +278,8 @@ class LMUCellODE(Layer):
             for i in range(self.units):
                 C_full[i, :, i] = self._C[0]
             decoder_initializer = Constant(
-                C_full.reshape(self.units*self.order, self.units))
+                C_full.reshape(self.units * self.order, self.units)
+            )
 
         self.decoder_initializer = initializers.get(decoder_initializer)
         self.hidden_activation = activations.get(hidden_activation)
@@ -286,21 +297,21 @@ class LMUCellODE(Layer):
         if not (self.trainable_dt or self.trainable_A or self.trainable_B):
             # This is a hack to speed up parts of the computational graph
             # that are static. This is not a general solution.
-            ss = cont2discrete(self._ss, dt=1., method=self.method)
+            ss = cont2discrete(self._ss, dt=1.0, method=self.method)
             AT = K.variable(ss.A.T)
             B = K.variable(ss.B.T[None, ...])
             self._solver = lambda: (AT, B)
 
-        elif self.method == 'euler':
+        elif self.method == "euler":
             self._solver = self._euler
 
-        elif self.method == 'zoh':
+        elif self.method == "zoh":
             self._solver = self._zoh
 
         else:
             raise NotImplementedError("Unknown method='%s'" % self.method)
 
-        self.state_size = self.units*self.order  # flattened
+        self.state_size = self.units * self.order  # flattened
         self.output_size = self.state_size if return_states else self.units
 
     def build(self, input_shape):
@@ -309,34 +320,39 @@ class LMUCellODE(Layer):
         # TODO: add regularizers
 
         self.encoders = self.add_weight(
-            name='encoders',
+            name="encoders",
             shape=(input_dim, self.units),
             initializer=self.encoder_initializer,
-            trainable=self.trainable_encoders)
+            trainable=self.trainable_encoders,
+        )
 
         self.dt = self.add_weight(
-            name='dt',
+            name="dt",
             shape=(1,),
             initializer=self.dt_initializer,
-            trainable=self.trainable_dt)
+            trainable=self.trainable_dt,
+        )
 
         self.decoders = self.add_weight(
-            name='decoders',
-            shape=(self.units*self.order, self.output_size),
+            name="decoders",
+            shape=(self.units * self.order, self.output_size),
             initializer=self.decoder_initializer,
-            trainable=self.trainable_decoders)
+            trainable=self.trainable_decoders,
+        )
 
         self.AT = self.add_weight(
-            name='AT',
+            name="AT",
             shape=(self.order, self.order),
             initializer=Constant(self._A.T),  # note: transposed
-            trainable=self.trainable_A)
+            trainable=self.trainable_A,
+        )
 
         self.B = self.add_weight(
-            name='B',
+            name="B",
             shape=(1, 1, self.order),  # system is SISO
             initializer=Constant(self._B[None, None, :]),
-            trainable=self.trainable_B)
+            trainable=self.trainable_B,
+        )
 
         self.I = K.eye(self.order)
         self.zero_padding = K.zeros((1, self.order + 1))
@@ -349,12 +365,18 @@ class LMUCellODE(Layer):
         return (AT, B)
 
     def _zoh(self):
-        M = K.concatenate([K.concatenate([K.transpose(self.AT),
-                                          K.transpose(self.B[0])], axis=1),
-                           self.zero_padding], axis=0)
+        M = K.concatenate(
+            [
+                K.concatenate([K.transpose(self.AT), K.transpose(self.B[0])], axis=1),
+                self.zero_padding,
+            ],
+            axis=0,
+        )
         eM = K.tf.linalg.expm(self.dt * M)
-        return (K.transpose(eM[:self.order, :self.order]),
-                K.reshape(eM[:self.order, self.order:], self.B.shape))
+        return (
+            K.transpose(eM[: self.order, : self.order]),
+            K.reshape(eM[: self.order, self.order :], self.B.shape),
+        )
 
     def call(self, inputs, states):
         u = K.dot(inputs, self.encoders)
@@ -365,7 +387,7 @@ class LMUCellODE(Layer):
 
         x = K.dot(x, AT) + B * K.expand_dims(u, -1)
 
-        x = self.hidden_activation(K.reshape(x, (-1, self.units*self.order)))
+        x = self.hidden_activation(K.reshape(x, (-1, self.units * self.order)))
 
         y = self.output_activation(K.dot(x, self.decoders))
 
@@ -375,37 +397,39 @@ class LMUCellODE(Layer):
 class LMUCellGating(Layer):
     """Variant of LMUCell that supports gating mechanisms."""
 
-    def __init__(self,
-                 units,
-                 order,
-                 theta,  # relative to dt=1
-                 method='zoh',
-                 realizer=Identity(),
-                 factory=LegendreDelay,
-                 trainable_input_encoders=True,
-                 trainable_hidden_encoders=True,
-                 trainable_memory_encoders=True,
-                 trainable_input_kernel=True,
-                 trainable_hidden_kernel=True,
-                 trainable_memory_kernel=True,
-                 trainable_forget_input_kernel=False,
-                 trainable_forget_hidden_kernel=False,
-                 trainable_forget_bias=False,
-                 trainable_A=False,
-                 trainable_B=False,
-                 input_encoders_initializer='lecun_uniform',
-                 hidden_encoders_initializer='lecun_uniform',
-                 memory_encoders_initializer=Constant(0),  # 'lecun_uniform',
-                 input_kernel_initializer='glorot_normal',
-                 hidden_kernel_initializer='glorot_normal',
-                 memory_kernel_initializer='glorot_normal',
-                 forget_input_kernel_initializer=Constant(1),
-                 forget_hidden_kernel_initializer=Constant(1),
-                 forget_bias_initializer=Constant(0),
-                 hidden_activation='tanh',
-                 input_activation='linear',
-                 gate_activation='linear',
-                 **kwargs):
+    def __init__(
+        self,
+        units,
+        order,
+        theta,  # relative to dt=1
+        method="zoh",
+        realizer=Identity(),
+        factory=LegendreDelay,
+        trainable_input_encoders=True,
+        trainable_hidden_encoders=True,
+        trainable_memory_encoders=True,
+        trainable_input_kernel=True,
+        trainable_hidden_kernel=True,
+        trainable_memory_kernel=True,
+        trainable_forget_input_kernel=False,
+        trainable_forget_hidden_kernel=False,
+        trainable_forget_bias=False,
+        trainable_A=False,
+        trainable_B=False,
+        input_encoders_initializer="lecun_uniform",
+        hidden_encoders_initializer="lecun_uniform",
+        memory_encoders_initializer=Constant(0),  # 'lecun_uniform',
+        input_kernel_initializer="glorot_normal",
+        hidden_kernel_initializer="glorot_normal",
+        memory_kernel_initializer="glorot_normal",
+        forget_input_kernel_initializer=Constant(1),
+        forget_hidden_kernel_initializer=Constant(1),
+        forget_bias_initializer=Constant(0),
+        hidden_activation="tanh",
+        input_activation="linear",
+        gate_activation="linear",
+        **kwargs
+    ):
         super().__init__(**kwargs)
 
         self.units = units
@@ -420,7 +444,7 @@ class LMUCellGating(Layer):
         self.trainable_input_kernel = trainable_input_kernel
         self.trainable_hidden_kernel = trainable_hidden_kernel
         self.trainable_memory_kernel = trainable_memory_kernel
-        self.trainable_forget_input_kernel = trainable_forget_input_kernel,
+        self.trainable_forget_input_kernel = (trainable_forget_input_kernel,)
         self.trainable_forget_hidden_kernel = trainable_forget_hidden_kernel
         self.trainable_forget_bias = trainable_forget_bias
         self.trainable_A = trainable_A
@@ -432,18 +456,22 @@ class LMUCellGating(Layer):
         self.input_kernel_initializer = initializers.get(input_kernel_initializer)
         self.hidden_kernel_initializer = initializers.get(hidden_kernel_initializer)
         self.memory_kernel_initializer = initializers.get(memory_kernel_initializer)
-        self.forget_input_kernel_initializer = initializers.get(forget_input_kernel_initializer)
-        self.forget_hidden_kernel_initializer = initializers.get(forget_hidden_kernel_initializer)
+        self.forget_input_kernel_initializer = initializers.get(
+            forget_input_kernel_initializer
+        )
+        self.forget_hidden_kernel_initializer = initializers.get(
+            forget_hidden_kernel_initializer
+        )
         self.forget_bias_initializer = initializers.get(forget_bias_initializer)
 
         self.hidden_activation = activations.get(hidden_activation)
         self.input_activation = activations.get(input_activation)
         self.gate_activation = activations.get(gate_activation)
 
-        self._realizer_result = realizer(
-            factory(theta=theta, order=self.order))
+        self._realizer_result = realizer(factory(theta=theta, order=self.order))
         self._ss = cont2discrete(
-            self._realizer_result.realization, dt=1., method=method)
+            self._realizer_result.realization, dt=1.0, method=method
+        )
         self._A = self._ss.A - np.eye(order)  # puts into form: x += Ax
         self._B = self._ss.B
         self._C = self._ss.C
@@ -474,70 +502,81 @@ class LMUCellGating(Layer):
         # TODO: add regularizers
 
         self.input_encoders = self.add_weight(
-            name='input_encoders',
+            name="input_encoders",
             shape=(input_dim, 1),
             initializer=self.input_encoders_initializer,
-            trainable=self.trainable_input_encoders)
+            trainable=self.trainable_input_encoders,
+        )
 
         self.hidden_encoders = self.add_weight(
-            name='hidden_encoders',
+            name="hidden_encoders",
             shape=(self.units, 1),
             initializer=self.hidden_encoders_initializer,
-            trainable=self.trainable_hidden_encoders)
+            trainable=self.trainable_hidden_encoders,
+        )
 
         self.memory_encoders = self.add_weight(
-            name='memory_encoders',
+            name="memory_encoders",
             shape=(self.order, 1),
             initializer=self.memory_encoders_initializer,
-            trainable=self.trainable_memory_encoders)
+            trainable=self.trainable_memory_encoders,
+        )
 
         self.input_kernel = self.add_weight(
-            name='input_kernel',
+            name="input_kernel",
             shape=(input_dim, self.units),
             initializer=self.input_kernel_initializer,
-            trainable=self.trainable_input_kernel)
+            trainable=self.trainable_input_kernel,
+        )
 
         self.hidden_kernel = self.add_weight(
-            name='hidden_kernel',
+            name="hidden_kernel",
             shape=(self.units, self.units),
             initializer=self.hidden_kernel_initializer,
-            trainable=self.trainable_hidden_kernel)
+            trainable=self.trainable_hidden_kernel,
+        )
 
         self.memory_kernel = self.add_weight(
-            name='memory_kernel',
+            name="memory_kernel",
             shape=(self.order, self.units),
             initializer=self.memory_kernel_initializer,
-            trainable=self.trainable_memory_kernel)
+            trainable=self.trainable_memory_kernel,
+        )
 
         self.forget_input_kernel = self.add_weight(
-            name='forget_input_kernel',
+            name="forget_input_kernel",
             shape=(input_dim, self.order),
             initializer=self.forget_input_kernel_initializer,
-            trainable=self.trainable_forget_input_kernel)
+            trainable=self.trainable_forget_input_kernel,
+        )
 
         self.forget_hidden_kernel = self.add_weight(
-            name='forget_hidden_kernel',
+            name="forget_hidden_kernel",
             shape=(self.units, self.order),
             initializer=self.forget_input_kernel_initializer,
-            trainable=self.trainable_forget_input_kernel)
+            trainable=self.trainable_forget_input_kernel,
+        )
 
         self.forget_bias = self.add_weight(
-            name='forget_bias',
+            name="forget_bias",
             shape=(1, self.order),
             initializer=self.forget_bias_initializer,
-            trainable=self.trainable_forget_bias)
+            trainable=self.trainable_forget_bias,
+        )
 
         self.AT = self.add_weight(
-            name='AT',
+            name="AT",
             shape=(self.order, self.order),
             initializer=Constant(self._A.T),  # note: transposed
-            trainable=self.trainable_A)
+            trainable=self.trainable_A,
+        )
 
         self.BT = self.add_weight(
-            name='BT',
+            name="BT",
             shape=(1, self.order),  # system is SISO
             initializer=Constant(self._B.T),  # note: transposed
-            trainable=self.trainable_B)
+            trainable=self.trainable_B,
+        )
 
         self.built = True
 
@@ -545,20 +584,25 @@ class LMUCellGating(Layer):
         h, m = states
 
         u = self.input_activation(
-                (K.dot(inputs, self.input_encoders) +
-                 K.dot(h, self.hidden_encoders) +
-                 K.dot(m, self.memory_encoders)))
+            (
+                K.dot(inputs, self.input_encoders)
+                + K.dot(h, self.hidden_encoders)
+                + K.dot(m, self.memory_encoders)
+            )
+        )
 
         f = self.gate_activation(
-            K.dot(inputs, self.forget_input_kernel) +
-            K.dot(h, self.forget_hidden_kernel) +
-            self.forget_bias)
+            K.dot(inputs, self.forget_input_kernel)
+            + K.dot(h, self.forget_hidden_kernel)
+            + self.forget_bias
+        )
 
         m = m + K.dot(m, self.AT) + f * K.dot(u, self.BT)
 
         h = self.hidden_activation(
-             K.dot(inputs, self.input_kernel) +
-             K.dot(h, self.hidden_kernel) +
-             K.dot(m, self.memory_kernel))
+            K.dot(inputs, self.input_kernel)
+            + K.dot(h, self.hidden_kernel)
+            + K.dot(m, self.memory_kernel)
+        )
 
         return h, [h, m]

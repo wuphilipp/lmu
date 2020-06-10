@@ -30,24 +30,15 @@ root = os.path.dirname(os.path.realpath(__file__))
 version = runpy.run_path(os.path.join(root, "lmu", "version.py"))["version"]
 
 install_req = [
+    "nengolib>=0.5.1",
     "keras>=2.2.4",
     "tensorflow>=2.0.0",
-    "torch>=1.1.0",
-    "scikit-learn>=0.20.1",
-    "matplotlib>=3.0.2",
-    "IPython>=7.2.0",
-    "notebook>=5.7.4",
-    "seaborn>=0.9.0",
-    "scipy",
-    "nengolib>=0.5.1",
-    "nengo>=2.8.0,<3.0",
-    "phased-lstm-keras",
 ]
 docs_req = []
-optional_req = []
-tests_req = [
-    "pytest>=4.3.0",
+optional_req = [
+    "scipy",
 ]
+tests_req = []
 
 setup(
     name="lmu",
@@ -58,7 +49,7 @@ setup(
     url="https://www.nengo.ai/lmu",
     include_package_data=False,
     license="Free for non-commercial use",
-    description="Legrenge memory units",
+    description="Legrenge Memory Units",
     long_description=read("README.rst", "CHANGES.rst"),
     zip_safe=False,
     install_requires=install_req,

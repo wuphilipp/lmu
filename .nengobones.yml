@@ -12,21 +12,17 @@ contributing_rst: {}
 contributors_rst: {}
 
 setup_py:
-  install_req:
-    - keras>=2.2.4
+  install_req:  
+    - nengolib>=0.5.1
+    - keras>=2.2.4 
     - tensorflow>=2.0.0
-    - torch>=1.1.0
-    - scikit-learn>=0.20.1
+  doc_req:
     - matplotlib>=3.0.2
     - IPython>=7.2.0
     - notebook>=5.7.4
     - seaborn>=0.9.0
+  optional_req:
     - scipy
-    - nengolib>=0.5.1
-    - nengo>=2.8.0,<3.0
-    - phased-lstm-keras
-  tests_req:
-    - pytest>=4.3.0
   classifiers:
     - "Development Status :: 3 - Alpha"
     - "Framework :: Nengo"
@@ -39,6 +35,14 @@ setup_py:
     - "Programming Language :: Python :: 3.7"
     - "Topic :: Scientific/Engineering "
     - "Topic :: Scientific/Engineering :: Artificial Intelligence"
+
+setup_cfg:
+  flake8:
+    exclude:
+      - lmu/__init__.py
+  pylint:
+    disable:
+      - imported-but-unused 
 
 travis_yml:
   python: 3.5
