@@ -228,6 +228,7 @@ class LMUCell(Layer):
             K.dot(inputs, self.input_kernel)
             + K.dot(h, self.hidden_kernel)
             + K.dot(m, self.memory_kernel)
+            + self.bias if self.include_bias else 0
         )
 
         return h, [h, m]
