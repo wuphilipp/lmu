@@ -170,21 +170,21 @@ class LMUCell(Layer):
             name="input_kernel",
             shape=(input_dim, self.units),
             initializer=self.input_kernel_initializer,
-            regularizer-self.kernel_regularizer,
+            regularizer=self.kernel_regularizer,
             trainable=self.trainable_input_kernel)
 
         self.hidden_kernel = self.add_weight(
             name="hidden_kernel",
             shape=(self.units, self.units),
             initializer=self.hidden_kernel_initializer,
-            regularizer-self.kernel_regularizer,
+            regularizer=self.kernel_regularizer,
             trainable=self.trainable_hidden_kernel)
 
         self.memory_kernel = self.add_weight(
             name="memory_kernel",
             shape=(self.order, self.units),
             initializer=self.memory_kernel_initializer,
-            regularizer-self.kernel_regularizer,
+            regularizer=self.kernel_regularizer,
             trainable=self.trainable_memory_kernel)
 
         if self.include_bias:
@@ -192,7 +192,7 @@ class LMUCell(Layer):
                 name='bias',
                 shape=(1, self.units),
                 initializer=Constant(0),
-                regularizer-self.kernel_regularizer,
+                regularizer=self.kernel_regularizer,
                 trainable=True)
 
         self.AT = self.add_weight(
