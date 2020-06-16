@@ -4,7 +4,7 @@ from nengolib.synapses import LegendreDelay
 import numpy as np
 
 from keras import backend as K
-from keras import activations, initializers
+from keras import activations, initializers, regularizers
 from keras.initializers import Constant, Initializer
 from keras.layers import Layer
 
@@ -56,8 +56,8 @@ class LMUCell(Layer):
         units,
         order,
         theta,  # relative to dt=1
-        method="zoh",
-        realizer=Identity(),  # TODO: Deprecate?
+        method='zoh',
+        realizer=Identity(),    # TODO: Deprecate?
         factory=LegendreDelay,  # TODO: Deprecate?
         trainable_input_encoders=True,
         trainable_hidden_encoders=True,
@@ -67,15 +67,18 @@ class LMUCell(Layer):
         trainable_memory_kernel=True,
         trainable_A=False,
         trainable_B=False,
-        input_encoders_initializer="lecun_uniform",
-        hidden_encoders_initializer="lecun_uniform",
+        input_encoders_initializer='lecun_uniform',
+        hidden_encoders_initializer='lecun_uniform',
         memory_encoders_initializer=Constant(0),  # 'lecun_uniform',
-        input_kernel_initializer="glorot_normal",
-        hidden_kernel_initializer="glorot_normal",
-        memory_kernel_initializer="glorot_normal",
-        hidden_activation="tanh",
-        **kwargs
-    ):
+        input_kernel_initializer='glorot_normal',
+        hidden_kernel_initializer='glorot_normal',
+        memory_kernel_initializer='glorot_normal',
+        hidden_activation='tanh',
+        include_bias=False,
+        kernel_regularizer=None,
+        encoders_regularizer=None,
+        **kwargs):
+
         super().__init__(**kwargs)
 
         self.units = units
@@ -100,7 +103,14 @@ class LMUCell(Layer):
         self.hidden_kernel_initializer = initializers.get(hidden_kernel_initializer)
         self.memory_kernel_initializer = initializers.get(memory_kernel_initializer)
 
+        self.encoders_regularizer = regularizers.get(
+            encoders_regularizer)
+        self.kernel_regularizer = regularizers.get(
+            kernel_regularizer)
+
+
         self.hidden_activation = activations.get(hidden_activation)
+        self.include_bias = include_bias
 
         self._realizer_result = realizer(factory(theta=theta, order=self.order))
         self._ss = cont2discrete(
@@ -139,43 +149,51 @@ class LMUCell(Layer):
             name="input_encoders",
             shape=(input_dim, 1),
             initializer=self.input_encoders_initializer,
-            trainable=self.trainable_input_encoders,
-        )
+            regularizer=self.encoder_regularizer,
+            trainable=self.trainable_input_encoders)
 
         self.hidden_encoders = self.add_weight(
             name="hidden_encoders",
             shape=(self.units, 1),
             initializer=self.hidden_encoders_initializer,
-            trainable=self.trainable_hidden_encoders,
-        )
+            regularizer=self.encoder_regularizer,
+            trainable=self.trainable_hidden_encoders)
 
         self.memory_encoders = self.add_weight(
             name="memory_encoders",
             shape=(self.order, 1),
             initializer=self.memory_encoders_initializer,
-            trainable=self.trainable_memory_encoders,
-        )
+            regularizer=self.encoder_regularizer,
+            trainable=self.trainable_memory_encoders)
 
         self.input_kernel = self.add_weight(
             name="input_kernel",
             shape=(input_dim, self.units),
             initializer=self.input_kernel_initializer,
-            trainable=self.trainable_input_kernel,
-        )
+            regularizer-self.kernel_regularizer,
+            trainable=self.trainable_input_kernel)
 
         self.hidden_kernel = self.add_weight(
             name="hidden_kernel",
             shape=(self.units, self.units),
             initializer=self.hidden_kernel_initializer,
-            trainable=self.trainable_hidden_kernel,
-        )
+            regularizer-self.kernel_regularizer,
+            trainable=self.trainable_hidden_kernel)
 
         self.memory_kernel = self.add_weight(
             name="memory_kernel",
             shape=(self.order, self.units),
             initializer=self.memory_kernel_initializer,
-            trainable=self.trainable_memory_kernel,
-        )
+            regularizer-self.kernel_regularizer,
+            trainable=self.trainable_memory_kernel)
+
+        if self.include_bias:
+            self.bias = self.add_weight(
+                name='bias',
+                shape=(1, self.units),
+                initializer=Constant(0),
+                regularizer-self.kernel_regularizer,
+                trainable=True)
 
         self.AT = self.add_weight(
             name="AT",
@@ -190,6 +208,8 @@ class LMUCell(Layer):
             initializer=Constant(self._B.T),  # note: transposed
             trainable=self.trainable_B,
         )
+
+
 
         self.built = True
 
